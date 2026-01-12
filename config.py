@@ -1,8 +1,9 @@
 import os
 from dotenv import load_dotenv
 
-# Cargar variables de entorno
-load_dotenv()
+# Solo cargar .env en desarrollo local
+if os.path.exists('.env'):
+    load_dotenv()
 
 class Config:
     """Configuración centralizada de la aplicación"""
@@ -12,7 +13,8 @@ class Config:
         "host": os.getenv("DB_HOST", "localhost"),
         "user": os.getenv("DB_USER", "root"),
         "password": os.getenv("DB_PASSWORD", ""),
-        "database": os.getenv("DB_NAME", "gastos_app")
+        "database": os.getenv("DB_NAME", "gastos_app"),
+        "port": int(os.getenv("DB_PORT", "3306"))
     }
     
     # Seguridad

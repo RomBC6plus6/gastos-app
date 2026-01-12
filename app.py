@@ -1,20 +1,22 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from config import Config
+import os
 
 from routers.movimientos import movimientos_bp
 from routers.auth import auth_bp
 
 # Crear aplicación Flask
-app = Flask(__name__)
+app = Flask(__name__, static_folder='frontend', static_url_path='')
 app.config['SECRET_KEY'] = Config.SECRET_KEY
 
 # Configurar CORS
 CORS(app, resources={
-    r"/*": {
+    r"/api/*": {
         "origins": "*",
-        "methods": ["GET", "POST", "PUT", "DELETE"],
-        "allow_headers": ["Content-Type"]
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": False
     }
 })
 
@@ -22,9 +24,19 @@ CORS(app, resources={
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(movimientos_bp, url_prefix="/api")
 
-# Rutas de información
+# Ruta principal - servir el frontend
 @app.route("/")
-def home():
+def index():
+    return send_from_directory('frontend', 'index.html')
+
+# Servir archivos estáticos del frontend
+@app.route("/<path:path>")
+def serve_static(path):
+    return send_from_directory('frontend', path)
+
+# Ruta de información de la API
+@app.route("/api")
+def api_info():
     return jsonify({
         "app": "Gastos App API",
         "version": "1.0",
@@ -50,8 +62,10 @@ def internal_error(error):
     return jsonify({"error": "Error interno del servidor"}), 500
 
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    
     app.run(
-        host="0.0.0.0",  # Accesible desde tu red local
-        port=5000,
-        debug=True
+        host="0.0.0.0",
+        port=port,
+        debug=False
     )
